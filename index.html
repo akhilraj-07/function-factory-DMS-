@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Function Factory</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/motion@11.18.2/dist/motion.js"></script>
+<style>
+:root{--c:#5eead4;--i:#818cf8;--t:#e8ecff;--m:#9aa6d6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#070b1a;color:var(--t);font:15px/1.55 system-ui,"Segoe UI",sans-serif;min-height:100vh;display:flex;overflow-x:hidden}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.4;z-index:-1;animation:fl 14s ease-in-out infinite alternate}
+.o1{width:440px;height:440px;background:#4f46e5;top:-120px;left:-80px}.o2{width:380px;height:380px;background:#0d9488;bottom:-100px;right:-60px;animation-delay:-6s}
+@keyframes fl{to{transform:translate(60px,40px) scale(1.15)}}
+.g{position:relative;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.03));backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.15);overflow:hidden}
+.g::before{content:"";position:absolute;inset:0;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),rgba(129,140,248,.2),transparent 70%);opacity:0;transition:.3s;pointer-events:none}.g:hover::before{opacity:1}
+aside{width:224px;flex:none;position:sticky;top:0;height:100vh;padding:14px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid rgba(255,255,255,.1)}
+.logo{font-size:17px;background:linear-gradient(90deg,var(--c),var(--i));-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 8px 10px}
+main{flex:1;min-width:0;padding:24px;max-width:980px;margin:0 auto}
+h1{font-size:clamp(34px,6vw,56px);margin:.1em 0;letter-spacing:-1px}h2{margin:0 0 12px}h3{margin:0 0 8px}
+.sub{color:var(--c);font-size:18px;margin:0}.tag{color:var(--m);letter-spacing:2px;text-transform:uppercase;font-size:12px}p{color:#c9d1f5}
+.b{position:relative;overflow:hidden;cursor:pointer;color:var(--t);font-family:inherit;font-weight:600;font-size:14px;padding:10px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 18px rgba(0,0,0,.3);transition:.25s}
+.b::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .6s}
+.b:hover::after{left:140%}.b:hover{border-color:var(--c);box-shadow:0 0 22px rgba(94,234,212,.35),inset 0 1px 0 rgba(255,255,255,.3);transform:translateY(-1px)}
+.b.p,.b.on{background:linear-gradient(135deg,rgba(129,140,248,.55),rgba(94,234,212,.35))}
+.nv{text-align:left;white-space:nowrap;padding:9px 14px}.nv.on{border-color:var(--c)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+input,select{font:inherit;color:var(--t);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:9px 12px;width:100%;backdrop-filter:blur(8px);transition:.2s}
+input:focus{border-color:var(--c);box-shadow:0 0 0 3px rgba(94,234,212,.2)}select option{color:#111}
+label{display:block;font-size:12px;color:var(--m);flex:1;min-width:130px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:10px 0}
+.pipe{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}.pipe i{color:var(--c);font-style:normal;font-size:20px}
+.chip,.mc{padding:8px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);font-family:ui-monospace,Menlo,monospace}
+.mc{border-color:var(--i);background:rgba(129,140,248,.2);box-shadow:0 0 18px rgba(129,140,248,.3)}
+.st{padding:9px 14px;margin:6px 0;border-left:3px solid var(--c);background:rgba(255,255,255,.05);border-radius:0 12px 12px 0;font-family:ui-monospace,Menlo,monospace;overflow-x:auto}
+.err{padding:10px 14px;border-radius:12px;background:rgba(244,63,94,.18);border:1px solid rgba(244,63,94,.5)}
+.ok{color:#5eead4}.no{color:#fda4af}.note{font-size:13px;color:var(--m)}
+.bar{height:10px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--i),var(--c));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.grid>div{padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:14px}
+button:disabled{cursor:default;opacity:.75}.b:disabled:hover{transform:none}#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:none;z-index:9;padding:12px 20px;border-radius:16px;background:rgba(20,28,60,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--c);box-shadow:0 0 28px rgba(94,234,212,.4)}[draggable=true]{cursor:grab}svg{max-width:100%;height:auto}.scroll{overflow-x:auto}
+@media(max-width:800px){body{flex-direction:column}aside{width:auto;height:auto;position:static;flex-direction:row;align-items:center;border-right:0}.logo{margin:0 8px}main{padding:14px}}
+.rw{border-left:3px solid var(--c)}.rw p{margin:6px 0 0}</style></head><body>
+<div class="orb o1"></div><div class="orb o2"></div>
+<aside id="nav" aria-label="Sections"></aside>
+<main>
+<section id="home" class="pg">
+<div class="g"><div class="tag">DMS · Function Composition</div><h1>Function Factory</h1><p class="sub">An Interactive Journey Through Function Composition</p><p>Understand. Compose. Experiment. Master. Turn functions into machines, connect them, and discover what happens when mathematics meets interaction.</p>
+<div class="row"><button class="b p" data-go="learn">Start Learning</button><button class="b" data-go="compose">Explore Interactive Lab</button></div>
+<div class="pipe pv"><span class="chip">x = 3</span><i>→</i><span class="mc">g(x) = x²</span><i>→</i><span class="chip">9</span><i>→</i><span class="mc">f(x) = 2x+3</span><i>→</i><span class="chip">21</span></div>
+<p class="note">Read f ∘ g right → left: g acts first, then f.</p></div>
+<div class="g"><h3>Real examples of composition</h3><p class="note">Each stage is a function; the whole process is their composition. Try them in Applications.</p><div class="grid">
+<div><b>Shopping</b><br>₹1000 item, 20% off, then 18% GST: g(p)=0.8p, f(p)=1.18p.<br>1000 → 800 → <b>944</b></div>
+<div><b>Temperature</b><br>°C → °F → K for 25 °C:<br>25 → 77 → <b>298.15</b></div>
+<div><b>Currency</b> <span class="note">(illustrative rates)</span><br>₹10,000 → $120 → <b>€110.40</b> using 0.012 and 0.92.</div>
+<div><b>Units</b><br>2.5 m → 250 cm → <b>2500 mm</b> (×100, then ×10).</div></div>
+<div class="row"><button class="b p" data-go="apply">Try these in Applications</button></div></div>
+<div class="g"><h3>Achievements</h3><div class="grid" id="bdg"></div></div>
+<div class="g"><h3>Quick reference</h3><div class="grid">
+<div>(f ∘ g)(x) = f(g(x))</div><div>(g ∘ f)(x) = g(f(x))</div><div>(f ∘ g) ∘ h = f ∘ (g ∘ h)</div><div>f ∘ I = I ∘ f = f</div><div>f⁻¹ ∘ f = I and f ∘ f⁻¹ = I</div><div>(f ∘ g)⁻¹ = g⁻¹ ∘ f⁻¹ <span class="note">(when the inverses exist)</span></div></div></div>
+</section>
+
+<section id="learn" class="pg" hidden>
+<div class="g"><h2>What is a function?</h2><p>A function f: A → B assigns <b>exactly one</b> output in B to each input in its domain A. Notation f(x): <i>f</i> is the rule, <i>x</i> the input.</p>
+<div class="row"><label>f(x)<input id="lf" value="2x+3"></label><label>x<input id="lx" value="4" inputmode="decimal"></label><button class="b p" onclick="mach()">Run machine</button></div><div id="lout"></div></div>
+<div class="g"><h2>Domain, codomain, range</h2><p>A = {1,2,3}, B = {2,4,6,8}, f: 1→2, 2→4, 3→6. Click to inspect.</p>
+<div class="row"><button class="b" onclick="hl('d')">Domain</button><button class="b" onclick="hl('c')">Codomain</button><button class="b" onclick="hl('r')">Range</button></div><div id="drs" class="st">Choose a set.</div></div>
+<div class="g"><h2>Types of functions</h2><div class="grid">
+<div><b>One-to-one (injective)</b><br>Distinct inputs give distinct outputs.</div><div><b>Many-to-one</b><br>Some two inputs share an output (not injective).</div>
+<div><b>Onto (surjective)</b><br>Range = codomain.</div><div><b>Into</b><br>Range is a proper subset of the codomain (not onto).</div>
+<div><b>Bijective</b><br>Both injective and onto.</div><div><b>Identity / Constant</b><br>I(x) = x; constant f(x) = c.</div></div>
+<p class="note">Injective/many-to-one and onto/into are independent questions: a many-to-one function can be onto, and a one-to-one function can be into.</p>
+<h3>Classify a random mapping</h3><div id="cm" class="st"></div><div class="row"><button class="b" onclick="ck('inj')">Is it one-to-one?</button><button class="b" onclick="ck('sur')">Is it onto B?</button><button class="b p" onclick="nm()">New mapping</button></div><div id="cr"></div></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>A taxi charges ₹12 per km plus a ₹50 base fare, so f(d) = 12d + 50 and f(10) = 170: each distance gives exactly one fare. Mapping students to roll numbers is one-to-one; mapping students to birth month is many-to-one, and into whenever some month is unused.</p></div>
+</section>
+
+<section id="compose" class="pg" hidden>
+<div class="g"><h2>Composition lab</h2><p>(f ∘ g)(x) = f(g(x)) — the inner function g is applied first. Use * between factors of x (e.g. x*(x+1)); supported: + − * / ^ ( ) sqrt abs.</p>
+<div class="row"><label>f(x)<input id="f" value="2x+3"></label><label>g(x)<input id="g" value="x^2"></label><label>h(x) <span class="note">(3-function mode)</span><input id="h" value="x+1"></label><label>x<input id="x" value="3" inputmode="decimal"></label></div>
+<div class="row" id="modes"><button class="b p" data-m="fg">f ∘ g</button><button class="b" data-m="gf">g ∘ f</button><button class="b" data-m="fgh">f ∘ g ∘ h</button><button class="b p" onclick="calc()">Calculate</button></div><div id="cout"></div></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>Price ₹1000 with a ₹100 coupon g(p) = p − 100 and 18% GST f(p) = 1.18p. Coupon first: (f ∘ g)(1000) = f(900) = <b>1062</b>. GST first: (g ∘ f)(1000) = g(1180) = <b>1080</b>. The order changes the price, so composition is not commutative.</p></div>
+</section>
+
+<section id="mapping" class="pg" hidden>
+<div class="g"><h2>Composition with sets</h2><p>f: A → B and g: B → C give g ∘ f: A → C. Click an element of A. Here f(a) = a+1 and g(b) = 2b.</p><div class="scroll"><svg id="msvg" viewBox="0 0 600 300" role="img" aria-label="Mapping diagram"></svg></div><div id="mout" class="st"></div></div>
+<div class="g"><h2>When is composition defined?</h2><p>g ∘ f needs range(f) ⊆ domain(g): every output of f must be a valid input of g.</p>
+<p><b>Compatible:</b> A → f → B → g → C, so g ∘ f: A → C.<br><b class="no">Incompatible:</b> f(x) = x − 5 and g(x) = √x on the reals. f(1) = −4 is not in the domain of g, so (g ∘ f)(1) is undefined; g ∘ f is defined only for x ≥ 5.</p></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>Let A be students, B departments and C heads of department. f sends a student to their department and g sends a department to its head, so g ∘ f: A → C sends each student to their department head. This works only if every department that f can output has a head (range of f ⊆ domain of g).</p></div>
+</section>
+
+<section id="domain" class="pg" hidden>
+<div class="g"><h2>Domain of a composite</h2><p>x is valid for f ∘ g when g(x) is defined <i>and</i> g(x) lies in the domain of f. Example: f = sqrt(x), g = x−2 needs x−2 ≥ 0, i.e. x ≥ 2.</p>
+<div class="row"><label>f(x)<input id="df" value="sqrt(x)"></label><label>g(x)<input id="dg" value="x-2"></label><button class="b p" onclick="dom()">Analyze f ∘ g</button></div><div id="dout"></div></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>A plot of area a m² has 2 m² reserved, and the rest is made into a square. Its side is √(a − 2), that is f(g(a)) with g(a) = a − 2 and f(x) = √x. This is real only when a ≥ 2, so the domain of the composite is a ≥ 2.</p></div>
+</section>
+
+<section id="props" class="pg" hidden>
+<div class="g"><h2>Properties lab</h2><div class="row"><label>f(x)<input id="pf" value="x+1"></label><label>g(x)<input id="pg" value="2x"></label><label>h(x)<input id="ph" value="x^2"></label><label>x<input id="px" value="2" inputmode="decimal"></label></div>
+<div class="row"><button class="b p" onclick="assoc()">Associativity</button><button class="b p" onclick="comm()">Commutativity</button><button class="b p" onclick="ident()">Identity</button></div><div id="pout"></div>
+<p class="note">Associativity (grouping) is a different property from commutativity (order).</p></div>
+<div class="g rw"><span class="tag">Real-world example</span><p><b>Associativity:</b> converting m → cm (×100) → mm (×10) → μm (×1000) gives ×1,000,000 however you group the steps, so 1 m = 1,000,000 μm. <b>Identity:</b> converting INR to INR (×1) leaves any amount unchanged. <b>Commutativity:</b> two pure multipliers (×0.8, ×1.18) commute (both give 944 from 1000), but the coupon and GST steps above do not.</p></div>
+</section>
+
+<section id="inverse" class="pg" hidden>
+<div class="g"><h2>Inverse functions <span class="tag">Advanced concept</span></h2><p>If f is invertible then f⁻¹(f(x)) = x and f(f⁻¹(x)) = x. For composites, (f ∘ g)⁻¹ = g⁻¹ ∘ f⁻¹: undo the last step first. Enter functions together with their inverses.</p>
+<div class="row"><label>f(x)<input id="vf" value="2x+3"></label><label>f⁻¹(x)<input id="vfi" value="(x-3)/2"></label><label>g(x)<input id="vg" value="3x-1"></label><label>g⁻¹(x)<input id="vgi" value="(x+1)/3"></label><label>x<input id="vx" value="2" inputmode="decimal"></label><button class="b p" onclick="inv()">Verify</button></div><div id="iout"></div></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>f(C) = 9C/5 + 32 converts °C to °F, and f⁻¹(F) = 5(F − 32)/9 undoes it: f(100) = 212 and f⁻¹(212) = 100. For two steps, (f ∘ g)⁻¹ = g⁻¹ ∘ f⁻¹: if you put on socks (g) then shoes (f), you must take off shoes (f⁻¹) first, then socks (g⁻¹).</p></div>
+</section>
+
+<section id="graph" class="pg" hidden>
+<div class="g"><h2>Graph visualizer</h2><div class="row"><label>f(x)<input id="gf" value="2x+1" oninput="gr()"></label><label>g(x)<input id="gg" value="x^2" oninput="gr()"></label></div>
+<div class="row"><label><input type="checkbox" id="gc0" checked onchange="gr()" style="width:auto"> f</label><label><input type="checkbox" id="gc1" checked onchange="gr()" style="width:auto"> g</label><label><input type="checkbox" id="gc2" checked onchange="gr()" style="width:auto"> f∘g</label><label><input type="checkbox" id="gc3" onchange="gr()" style="width:auto"> g∘f</label></div>
+<div class="row"><button class="b" onclick="zm(1.3)">Zoom +</button><button class="b" onclick="zm(1/1.3)">Zoom −</button><button class="b" onclick="pan(-1,0)">◀</button><button class="b" onclick="pan(1,0)">▶</button><button class="b" onclick="pan(0,1)">▲</button><button class="b" onclick="pan(0,-1)">▼</button><button class="b" onclick="gv={cx:0,cy:0,s:30};gr()">Reset</button></div>
+<div id="gerr" class="no"></div><div class="scroll"><svg id="gsvg" viewBox="0 0 640 360" role="img" aria-label="Function graphs"></svg></div></div>
+<div class="g rw"><span class="tag">Real-world example</span><p>Plot f(x) = 1.8x + 32 as the °C → °F converter: it is a straight line through (0, 32) and (100, 212). Add g(x) = x − 10 (a 10° offset) and compare f ∘ g with g ∘ f: they are parallel lines that differ by a vertical shift.</p></div>
+</section>
+
+<section id="apply" class="pg" hidden>
+<div class="g"><h2>Real-life compositions</h2><p>Sequential transformations are compositions: the output of one stage feeds the next.</p>
+<div class="row"><label>Scenario<select id="ap" onchange="ap()"><option value="0">Temperature: °C → °F → K</option><option value="1">Price: discount 20% → GST 18%</option><option value="2">Currency: INR → USD → EUR (illustrative rates)</option><option value="3">Units: m → cm → mm</option></select></label><label>Input<input id="av" value="25" inputmode="decimal"></label><button class="b p" onclick="ap()">Run</button></div><div id="aout"></div></div>
+</section>
+
+<section id="games" class="pg" hidden>
+<div class="g"><h2>Games</h2><p>Earn points, build streaks (3 in a row adds a +25 bonus) and beat your best score.</p>
+<div class="row" id="gmenu"><button class="b" data-k="rtl" onclick="gm('rtl')">Right-to-Left</button><button class="b" data-k="race" onclick="gm('race')">Composition Race</button><button class="b" data-k="mys" onclick="gm('mys')">Mystery Function</button><button class="b" data-k="dd" onclick="gm('dd')">Domain Detective</button></div>
+<div class="st">Score <b id="gs">0</b> · Best <b id="gb">0</b> · Streak <b id="gst">0</b></div><div id="gbox"><p class="note">Pick a game to start.</p></div></div></section>
+<section id="builder" class="pg" hidden>
+<div class="g"><h2>Machine builder</h2><p>Drag blocks into the track (or click a block to add it; drag blocks in the track to reorder). The track is written like a composite, so the <b>rightmost</b> block runs first.</p>
+<div class="row"><label>f(x)<input id="bf" value="2x+3" oninput="bev()"></label><label>g(x)<input id="bg" value="x^2" oninput="bev()"></label><label>h(x)<input id="bh" value="x+1" oninput="bev()"></label><label>x<input id="bx" value="3" inputmode="decimal" oninput="bev()"></label></div>
+<div class="row"><span class="mc" draggable="true" data-drag="p:f" tabindex="0" role="button" onclick="badd('f')" onkeydown="if(event.key==='Enter')badd('f')">f</span><span class="mc" draggable="true" data-drag="p:g" tabindex="0" role="button" onclick="badd('g')" onkeydown="if(event.key==='Enter')badd('g')">g</span><span class="mc" draggable="true" data-drag="p:h" tabindex="0" role="button" onclick="badd('h')" onkeydown="if(event.key==='Enter')badd('h')">h</span></div>
+<div id="bchain" class="pipe" style="min-height:64px;border:1px dashed rgba(255,255,255,.3);border-radius:14px;padding:10px" ondragover="event.preventDefault()" ondrop="bdrop(event)"></div>
+<div class="row"><button class="b" onclick="BC=[];bev(1)">Clear</button><button class="b p" onclick="bch()">New target challenge</button></div><div id="bt"></div><div id="bout"></div></div></section>
+<section id="final" class="pg" hidden><div class="g" id="fbox"></div></section>
+<section id="practice" class="pg" hidden>
+<div class="g"><h2>Practice generator</h2><div id="pq"></div><div class="row"><label>Your answer<input id="pa" inputmode="decimal"></label><button class="b p" onclick="pc()">Check</button><button class="b" onclick="ph_('hint')">💡 Hint</button><button class="b" onclick="ph_('sol')">✓ Solution</button><button class="b" onclick="np()">Next question</button></div><div id="pr"></div></div>
+</section>
+
+<section id="quiz" class="pg" hidden><div class="g" id="qbox"></div></section>
+</main><div id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],M=window.Motion,A=window.anime;
+let S={a:[]};try{S=Object.assign(S,JSON.parse(localStorage.getItem('ff')||'{}'))}catch(e){}
+S.a=S.a||[];const save=()=>{try{localStorage.setItem('ff',JSON.stringify(S))}catch(e){}};
+const fmt=n=>String(+(+n).toFixed(6)),X=/(?<![A-Za-z_])x(?![A-Za-z_])/g,sb=(s,v)=>s.replace(X,'('+fmt(v)+')'),TP=[-3,-2,-1,-.5,0,.5,1,2,3,4];
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),sg=k=>k>=0?'+'+k:''+k;
+const stp=a=>a.map(s=>`<div class="st">${s}</div>`).join(''),pipe=l=>'<div class="pipe">'+l.map((p,i)=>(i?'<i>→</i>':'')+`<span class="${p[0]=='m'?'mc':'chip'}">${p[1]}</span>`).join('')+'</div>';
+const reveal=sel=>{try{A({targets:sel,opacity:[0,1],translateY:[10,0],delay:A.stagger(100),easing:'easeOutCubic'})}catch(e){}};
+function F(src){if(!String(src).trim())throw Error('Please enter a function.');let c;try{c=math.compile(src)}catch(e){throw Error('Check the expression syntax.')}
+return x=>{let r;try{r=c.evaluate({x})}catch(e){throw Error('This expression is outside the currently supported format.')}
+if(typeof r!=='number')throw Error('The result is not a real number at x = '+fmt(x)+'.');if(!isFinite(r))throw Error('Division by zero is not allowed at this input.');return r}}
+const gx=id=>{const v=$(id).value.trim();if(v===''||isNaN(+v))throw Error('Enter a valid number for x.');return +v};
+function run(o,fn){try{fn()}catch(e){o.innerHTML='<div class="err">⚠ '+e.message+'</div>'}}
+function sub(o,i){let n;try{n=math.parse(o).transform(k=>k.isSymbolNode&&k.name==='x'?new math.ParenthesisNode(math.parse(i)):k)}catch(e){throw Error('Check the expression syntax.')}return n}
+function simp(n){try{return math.simplify(n).toString()}catch(e){return n.toString()}}
+const comp=(o,i)=>{const n=sub(o,i);return{raw:n.toString(),simp:simp(n)}};
+/* nav + progress */
+const TABS=[['home','Home'],['learn','Learn'],['compose','Compose'],['builder','Builder'],['mapping','Mapping'],['domain','Domain'],['props','Properties'],['inverse','Inverse'],['graph','Graph'],['apply','Applications'],['games','Games'],['practice','Practice'],['quiz','Quiz'],['final','Final']];
+$('#nav').innerHTML='<b class="logo">Function Factory</b>'+TABS.map(t=>`<button class="b nv" data-go="${t[0]}">${t[1]}</button>`).join('');
+function show(id){clearInterval(GT);$$('.pg').forEach(p=>p.hidden=p.id!==id);$$('.nv[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===id));const el=$('#'+id);
+try{M.animate(el,{opacity:[0,1],transform:['translateY(18px)','translateY(0px)']},{duration:.5,ease:'easeOut'})}catch(e){try{A({targets:el,opacity:[0,1],translateY:[18,0],duration:500,easing:'easeOutCubic'})}catch(e2){}}
+if(id==='graph')gr();window.scrollTo(0,0)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)show(b.dataset.go)});
+document.addEventListener('mousemove',e=>{const g=e.target.closest&&e.target.closest('.g');if(g){const r=g.getBoundingClientRect();g.style.setProperty('--mx',e.clientX-r.left+'px');g.style.setProperty('--my',e.clientY-r.top+'px')}});
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.b');if(b)try{M.animate(b,{scale:.95},{duration:.1})}catch(x){}});
+document.addEventListener('pointerup',()=>{$$('.b').forEach(b=>{if(b.style.transform.includes('scale'))try{M.animate(b,{scale:1},{type:'spring',stiffness:400,damping:20})}catch(x){}})});
+try{A({targets:'.pv > *',opacity:[.35,1],scale:[.94,1.04],delay:A.stagger(250),direction:'alternate',loop:true,duration:700,easing:'easeInOutSine'})}catch(e){}
+/* learn */
+function mach(){const o=$('#lout');run(o,()=>{const s=$('#lf').value,x=gx('#lx'),v=F(s)(x);o.innerHTML=pipe([['c','x = '+fmt(x)],['m','f'],['c',fmt(v)]])+stp([`f(${fmt(x)}) = ${sb(s,x)} = ${fmt(v)}`]);reveal('#lout .st,#lout .pipe>*')})}
+function hl(k){$('#drs').textContent={d:'Domain = {1, 2, 3} — the allowed inputs.',c:'Codomain = {2, 4, 6, 8} — the target set.',r:'Range = {2, 4, 6} — the outputs actually produced (8 is never hit, so f is into, not onto).'}[k];reveal('#drs')}
+let CM;function nm(){const n=ri(3,4),B='pqrs'.slice(0,n).split(''),m=[0,1,2].map(()=>B[ri(0,n-1)]);CM={B,m};$('#cm').innerHTML=`A = {1,2,3}, B = {${B.join(',')}}<br>`+m.map((v,i)=>`${i+1}→${v}`).join(' , ');$('#cr').innerHTML=''}
+function ck(k){const u=[...new Set(CM.m)],inj=u.length===3,sur=u.length===CM.B.length;const r=k==='inj'?(inj?'Yes: all outputs are distinct, so it is one-to-one.':'No: an output is repeated, so it is many-to-one.'):(sur?`Yes: range {${u}} equals B, so it is onto.`:`No: range {${u}} ≠ B, so it is into.`);$('#cr').innerHTML=stp([r+(inj&&sur?' (Bijective overall.)':'')]);reveal('#cr .st')}
+/* compose */
+let mode='fg';$$('#modes [data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;$$('#modes [data-m]').forEach(k=>k.classList.toggle('p',k===b))});
+function cmp(fs,gs,x){const f=F(fs),g=F(gs),ev=(a,b,t)=>{try{return a(b(t))}catch(e){return null}};let diff=false,n=0;
+for(const t of TP.concat([x])){const p=ev(f,g,t),q=ev(g,f,t);if(p!==null&&q!==null){n++;if(Math.abs(p-q)>1e-9*Math.max(1,Math.abs(p)))diff=true}}
+const a=ev(f,g,x),b=ev(g,f,x),c1=comp(fs,gs),c2=comp(gs,fs),fv=v=>v===null?'undefined at this x':fmt(v);
+const verdict=n===0?'Not enough points where both orders are defined.':diff?'<span class="no">✗ f ∘ g ≠ g ∘ f</span> — composition order changes the result.':`<span class="ok">✓ These particular functions commute under composition</span> (they agree at all ${n} tested points — evidence, not a proof). Composition is still NOT commutative in general.`;
+return stp([`f ∘ g = f(g(x)) = ${c1.raw} → ${c1.simp}; value at x: ${fv(a)}`,`g ∘ f = g(f(x)) = ${c2.raw} → ${c2.simp}; value at x: ${fv(b)}`,verdict,'Why order matters: in f ∘ g the input first meets g and f receives g(x); in g ∘ f the roles swap, so the intermediate values differ.'])}
+function calc(){const o=$('#cout');run(o,()=>{const fs=$('#f').value,gs=$('#g').value,hs=$('#h').value,x=gx('#x');
+const ch=mode==='fg'?[['g',gs],['f',fs]]:mode==='gf'?[['f',fs],['g',gs]]:[['h',hs],['g',gs],['f',fs]];
+const nm_=ch.map(c=>c[0]).reverse(),nested=nm_.reduceRight((a,n)=>n+'('+a+')','x'),title='('+nm_.join(' ∘ ')+')';
+let v=x,list=[['c','x = '+fmt(x)]],st=[`${title}(x) = ${nested} — rightmost function acts first (right → left)`];
+for(const [n,s] of ch){const nv=F(s)(v);st.push(`${n}(${fmt(v)}) = ${sb(s,v)} = ${fmt(nv)}`);list.push(['m',n],['c',fmt(nv)]);v=nv}
+st.push(`${title}(${fmt(x)}) = ${fmt(v)}`);
+let sym;if(mode==='fgh'){const n=sub(sub(fs,gs).toString(),hs);sym=stp([`f(g(h(x))) = ${n.toString()} → ${simp(n)}`])}else sym=cmp(fs,gs,x);
+o.innerHTML=pipe(list)+stp(st)+'<h3>Symbolic form &amp; comparison</h3>'+sym;reveal('#cout .st,#cout .pipe>*');ul('first')})}
+/* mapping */
+function mp(sel){if(sel)ul('map');const Ar=[1,2,3],Br=[2,3,4,5],Cr=[4,6,8,10],X0=[70,300,530],Y=(n,i)=>55+i*(210/(n-1));let s='',n='';
+Ar.forEach((a,i)=>{const bi=Br.indexOf(a+1),ci=Cr.indexOf(2*(a+1)),on=sel===a,c=on?'#5eead4':'#6b77b8',w=on?3.5:1.3;s+=`<line x1="${X0[0]}" y1="${Y(3,i)}" x2="${X0[1]}" y2="${Y(4,bi)}" stroke="${c}" stroke-width="${w}"/><line x1="${X0[1]}" y1="${Y(4,bi)}" x2="${X0[2]}" y2="${Y(4,ci)}" stroke="${c}" stroke-width="${w}"/>`});
+const node=(x,y,t,on,click)=>`<g ${click?`onclick="mp(${t})" onkeydown="if(event.key==='Enter')mp(${t})" tabindex="0" role="button" aria-label="Element ${t} of A" style="cursor:pointer"`:''}><circle cx="${x}" cy="${y}" r="20" fill="${on?'#5eead4':'#1c2347'}" stroke="#818cf8" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle" fill="${on?'#07101a':'#e8ecff'}" font-size="15">${t}</text></g>`;
+Ar.forEach((a,i)=>s+=node(X0[0],Y(3,i),a,sel===a,1));Br.forEach((b,i)=>s+=node(X0[1],Y(4,i),b,sel&&b===sel+1));Cr.forEach((c,i)=>s+=node(X0[2],Y(4,i),c,sel&&c===2*(sel+1)));
+s+=`<text x="70" y="22" text-anchor="middle" fill="#9aa6d6">A</text><text x="300" y="22" text-anchor="middle" fill="#9aa6d6">B</text><text x="530" y="22" text-anchor="middle" fill="#9aa6d6">C</text><text x="185" y="292" text-anchor="middle" fill="#9aa6d6" font-size="13">f: A→B</text><text x="415" y="292" text-anchor="middle" fill="#9aa6d6" font-size="13">g: B→C</text>`;
+$('#msvg').innerHTML=s;$('#mout').innerHTML=sel?`(g ∘ f)(${sel}) = g(f(${sel})) = g(${sel+1}) = ${2*(sel+1)}, so g ∘ f: A → C sends ${sel} ↦ ${2*(sel+1)}.`:'g ∘ f: A → C. Click an element of A to follow its path.'}
+/* domain */
+function dom(){const o=$('#dout');run(o,()=>{const fs=$('#df').value,gs=$('#dg').value,f=F(fs),g=F(gs),ok=[],vals=[];
+for(let i=-500;i<=500;i++){let v=null;try{v=f(g(i/50))}catch(e){}ok.push(v!==null);if(v!==null)vals.push(v)}
+const seg=[];let s=null;ok.forEach((k,i)=>{if(k&&s===null)s=i;if((!k||i===ok.length-1)&&s!==null){seg.push([s,k?i:i-1]);s=null}});
+const lab=seg.map(([a,b])=>`${a===0?'(':'['}${a===0?'−∞':fmt((a-500)/50)}, ${b===1000?'∞':fmt((b-500)/50)}${b===1000?')':']'}`).join(' ∪ ');
+let ineq=!seg.length?'no valid x found in [−10, 10]':seg.length===1?(seg[0][0]===0&&seg[0][1]===1000?'all x in the window':seg[0][1]===1000?'x ≥ '+fmt((seg[0][0]-500)/50):seg[0][0]===0?'x ≤ '+fmt((seg[0][1]-500)/50):lab):lab;
+const px=i=>20+(i+500)/1000*560;let svg=`<svg viewBox="0 0 600 70" role="img" aria-label="Domain number line"><line x1="20" y1="35" x2="580" y2="35" stroke="#6b77b8" stroke-width="2"/>`+[-10,-5,0,5,10].map(t=>`<line x1="${px(t*50)}" y1="30" x2="${px(t*50)}" y2="40" stroke="#9aa6d6"/><text x="${px(t*50)}" y="58" fill="#9aa6d6" font-size="12" text-anchor="middle">${t}</text>`).join('')+seg.map(([a,b])=>`<rect x="${px(a-500)}" y="28" width="${Math.max(3,px(b-500)-px(a-500))}" height="14" rx="6" fill="#5eead4" opacity=".85"/>`).join('')+'</svg>';
+const c=comp(fs,gs),rng=vals.length?`≈ [${fmt(Math.min(...vals))}, ${fmt(Math.max(...vals))}] over the sampled window`:'—';
+o.innerHTML=stp([`f ∘ g = ${c.raw} → ${c.simp}`,`Valid x (numerical scan of [−10, 10], step 0.02): <b>${ineq}</b>`,`Sampled range of f ∘ g: ${rng}`])+`<div class="scroll">${svg}</div><p class="note">Teal = x values where g(x) is real and g(x) lies in the domain of f. This is a numerical estimate (endpoints accurate to 0.02). Exact range analysis for arbitrary expressions requires mathematical reasoning beyond this solver.</p>`;reveal('#dout .st');ul('domain')})}
+/* properties */
+const vv=(s,x)=>F(s)(x);
+function assoc(){const o=$('#pout');run(o,()=>{const f=$('#pf').value,g=$('#pg').value,h=$('#ph').value,x=gx('#px');
+const L=sub(sub(f,g).toString(),h),R=sub(f,sub(g,h).toString()),a=vv(L.toString(),x),b=vv(R.toString(),x);let all=true;
+for(const t of TP){try{const p=vv(L.toString(),t),q=vv(R.toString(),t);if(Math.abs(p-q)>1e-9*Math.max(1,Math.abs(p)))all=false}catch(e){}}
+o.innerHTML=stp([`Left: (f ∘ g) ∘ h = ${L.toString()} → ${simp(L)}; value ${fmt(a)}`,`Right: f ∘ (g ∘ h) = ${R.toString()} → ${simp(R)}; value ${fmt(b)}`,Math.abs(a-b)<1e-9&&all?'<span class="ok">✓ Both sides agree.</span> Composition is associative: regrouping never changes the result, only the order of application matters.':'<span class="no">✗ Mismatch</span> — this should not happen for functions defined at these points; check the domains.']);reveal('#pout .st')})}
+function comm(){const o=$('#pout');run(o,()=>{o.innerHTML=cmp($('#pf').value,$('#pg').value,gx('#px'));reveal('#pout .st')})}
+function ident(){const o=$('#pout');run(o,()=>{const f=$('#pf').value,x=gx('#px'),v=vv(f,x);o.innerHTML=pipe([['c',fmt(x)],['m','I'],['c',fmt(x)],['m','f'],['c',fmt(v)]])+stp(['I(x) = x',`f ∘ I = ${simp(sub(f,'x'))}; I ∘ f = ${simp(sub('x',f))}; f(x) = ${simp(math.parse(f))}`,`At x = ${fmt(x)}: (f ∘ I)(x) = ${fmt(vv(sub(f,'x').toString(),x))} = (I ∘ f)(x) = ${fmt(vv(sub('x',f).toString(),x))} = f(x) = ${fmt(v)}`]);reveal('#pout .st,#pout .pipe>*');ul('id')})}
+/* inverse */
+function inv(){const o=$('#iout');run(o,()=>{const fs=$('#vf').value,fi=$('#vfi').value,gs=$('#vg').value,gi=$('#vgi').value,x=gx('#vx'),f=F(fs),fI=F(fi),g=F(gs),gI=F(gi);
+const gv_=g(x),y=f(gv_),r1=fI(y),r2=gI(r1);let a=true,b=true,c=true,n=0;const e=(p,q)=>Math.abs(p-q)<=1e-9*Math.max(1,Math.abs(q));
+for(const t of TP){try{if(!e(fI(f(t)),t))a=false;if(!e(f(fI(t)),t))b=false;if(!e(gI(fI(f(g(t)))),t))c=false;n++}catch(er){}}
+const m=z=>z?'<span class="ok">✓</span>':'<span class="no">✗</span>',cc=comp(gi,fi);
+o.innerHTML=pipe([['c',fmt(x)],['m','g'],['c',fmt(gv_)],['m','f'],['c',fmt(y)]])+pipe([['c',fmt(y)],['m','f⁻¹'],['c',fmt(r1)],['m','g⁻¹'],['c',fmt(r2)]])+stp([`Forward: x → g → f gives ${fmt(y)}; reverse: ${fmt(y)} → f⁻¹ → g⁻¹ gives ${fmt(r2)} ${m(e(r2,x))}`,`${m(a)} f⁻¹(f(x)) = x and ${m(b)} f(f⁻¹(x)) = x at ${n} sample points`,`${m(c)} (f ∘ g)⁻¹ = g⁻¹ ∘ f⁻¹; here g⁻¹(f⁻¹(x)) = ${cc.raw} → ${cc.simp}`,'Numerical evidence only: inverses must be valid on the relevant domains.']);reveal('#iout .st,#iout .pipe>*');if(a&&b&&c&&e(r2,x))ul('inv')})}
+/* graph */
+let gv={cx:0,cy:0,s:30};
+function gr(){let fs,gs;try{fs=F($('#gf').value);gs=F($('#gg').value)}catch(e){$('#gerr').textContent=e.message;return}$('#gerr').textContent='';
+const W=640,H=360,{cx,cy,s}=gv,px=x=>W/2+(x-cx)*s,py=y=>H/2-(y-cy)*s,st=s<12?5:s>80?.5:1;let o='';
+for(let k=Math.ceil((cx-W/2/s)/st)*st;k<=cx+W/2/s;k+=st)o+=`<line x1="${px(k)}" y1="0" x2="${px(k)}" y2="${H}" stroke="${Math.abs(k)<1e-9?'#9aa6d6':'rgba(255,255,255,.08)'}"/>`;
+for(let k=Math.ceil((cy-H/2/s)/st)*st;k<=cy+H/2/s;k+=st)o+=`<line x1="0" y1="${py(k)}" x2="${W}" y2="${py(k)}" stroke="${Math.abs(k)<1e-9?'#9aa6d6':'rgba(255,255,255,.08)'}"/>`;
+[['f',fs,'#818cf8'],['g',gs,'#5eead4'],['f∘g',x=>fs(gs(x)),'#fbbf24'],['g∘f',x=>gs(fs(x)),'#f472b6']].forEach(([n,fn,c],i)=>{if(!$('#gc'+i).checked)return;let d='',pen=false;
+for(let p=0;p<=W;p+=2){let y;try{y=fn((p-W/2)/s+cx)}catch(e){pen=false;continue}const q=py(y);if(Math.abs(q)>5000){pen=false;continue}d+=(pen?'L':'M')+p+' '+q.toFixed(1);pen=true}
+o+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2.4"/><text x="${10+i*60}" y="18" fill="${c}" font-size="14">${n}</text>`});
+$('#gsvg').innerHTML=o}
+const zm=k=>{gv.s=Math.min(200,Math.max(4,gv.s*k));gr()},pan=(a,b)=>{gv.cx+=a*60/gv.s;gv.cy+=b*60/gv.s;gr()};
+$('#gsvg').addEventListener('wheel',e=>{e.preventDefault();zm(e.deltaY<0?1.1:1/1.1)},{passive:false});
+/* applications */
+const APP=[[['°C → °F','9x/5+32'],['°F → K','(x-32)*5/9+273.15']],[['Discount 20%','x*0.8'],['GST 18%','x*1.18']],[['INR → USD','x*0.012'],['USD → EUR','x*0.92']],[['m → cm','x*100'],['cm → mm','x*10']]];
+function ap(){const o=$('#aout');run(o,()=>{const st=APP[+$('#ap').value],x=gx('#av');let v=x,l=[['c',fmt(x)]],t=[];for(const [n,e] of st){const nv=F(e)(v);t.push(`${n}: ${sb(e,v)} = ${fmt(nv)}`);l.push(['m',n],['c',fmt(nv)]);v=nv}
+const c=comp(st[1][1],st[0][1]);o.innerHTML=pipe(l)+stp(t.concat([`Composite (second ∘ first) = ${c.simp}; result ${fmt(v)}`]));reveal('#aout .st,#aout .pipe>*')})}
+/* practice */
+let P;
+function np(){const a=ri(2,5),b=ri(-5,5),c=ri(2,4),d=ri(-5,5),n=ri(-3,5),fg=Math.random()<.5,inner=fg?c*n+d:a*n+b,ans=fg?a*inner+b:c*inner+d;
+P={ans,hint:'Work right → left: evaluate the inner function first, then feed its output to the outer function.',sol:fg?`g(${n}) = ${c}(${n})${sg(d)} = ${inner}; f(${inner}) = ${a}(${inner})${sg(b)} = ${ans}`:`f(${n}) = ${a}(${n})${sg(b)} = ${inner}; g(${inner}) = ${c}(${inner})${sg(d)} = ${ans}`};
+$('#pq').innerHTML=`<p>Let f(x) = ${a}x${b?sg(b):''} and g(x) = ${c}x${d?sg(d):''}. Find <b>(${fg?'f ∘ g':'g ∘ f'})(${n})</b>.</p>`;$('#pa').value='';$('#pr').innerHTML=''}
+function pc(){const v=$('#pa').value.trim();if(v===''||isNaN(+v)){$('#pr').innerHTML='<div class="err">⚠ Enter a number.</div>';return}
+if(+v===P.ans){$('#pr').innerHTML=stp(['<span class="ok">✓ Correct!</span> '+P.sol])}else $('#pr').innerHTML=stp(['<span class="no">✗ Not quite.</span> Try the hint.']);reveal('#pr .st')}
+const ph_=k=>{$('#pr').innerHTML=stp([(k==='hint'?'💡 ':'✓ ')+P[k]]);reveal('#pr .st')};
+/* quiz */
+const Q=[['Composition','(f ∘ g)(x) means:',['f(g(x))','g(f(x))','f(x)·g(x)','f(x)+g(x)'],0,'The rightmost function g is applied first, then f.'],
+['Composition','f(x)=x+1, g(x)=2x. Find (f ∘ g)(3).',['7','8','9','10'],0,'g(3)=6, then f(6)=7.'],
+['Order','Same f and g. Find (g ∘ f)(3).',['7','8','6','9'],1,'f(3)=4, then g(4)=8.'],
+['Order','True or false: composition is always commutative.',['True','False'],1,'Counterexample above: f∘g(3)=7 but g∘f(3)=8.'],
+['Properties','(f ∘ g) ∘ h equals:',['f ∘ (g ∘ h)','g ∘ (f ∘ h)','(h ∘ g) ∘ f','f ∘ g ∘ f'],0,'Associativity: grouping does not matter.'],
+['Properties','f ∘ I equals:',['f','I','f⁻¹','a constant'],0,'I(x)=x, so f(I(x)) = f(x).'],
+['Domain','Real domain of (f ∘ g)(x) for f=sqrt(x), g=x−2:',['x ≥ 2','x > 2','x ≥ 0','all reals'],0,'Need x−2 ≥ 0.'],
+['Inverse','The inverse of f(x)=2x+3 is:',['(x−3)/2','(x+3)/2','2x−3','1/(2x+3)'],0,'Solve y=2x+3 for x.'],
+['Inverse','(f ∘ g)⁻¹ equals:',['g⁻¹ ∘ f⁻¹','f⁻¹ ∘ g⁻¹','g ∘ f','f ∘ g'],0,'Undo the last step first (socks and shoes).'],
+['Mapping','f: A→B and g: B→C. Then g ∘ f is a map:',['A → C','B → C','A → B','C → A'],0,'Inputs from A, outputs in C.'],
+['Composition','Which function acts first in f ∘ g?',['g','f','both at once','depends on x'],0,'f(g(x)): g is the inner function.'],
+['Inverse','True or false: f ∘ f⁻¹ = identity (on the codomain of f).',['True','False'],0,'f(f⁻¹(y)) = y for every y in the codomain.']];
+let QS;function qs(){QS={i:0,sc:0,by:{}};qr()}
+function qr(){const b=$('#qbox');if(QS.i>=Q.length){const p=Math.round(QS.sc/Q.length*100);if(p===100)ul('perfect');const w=Object.entries(QS.by).sort((a,c)=>a[1][0]/a[1][1]-c[1][0]/c[1][1])[0][0];
+b.innerHTML=`<h2>Result: ${QS.sc}/${Q.length} (${p}%)</h2>`+stp(Object.entries(QS.by).map(([k,v])=>`${k}: ${v[0]}/${v[1]}`))+`<p>${p>=90?'Excellent mastery.':p>=75?'Strong understanding.':p>=50?'Good start — revise a few concepts.':'Review the learning modules and try again.'} Suggested revision: <b>${w}</b>.</p><button class="b p" onclick="qs()">Retake</button>`;return}
+const q=Q[QS.i],[oo,cc]=mix(q[2],q[3]);QS.c=cc;b.innerHTML=`<h2>Question ${QS.i+1} of ${Q.length}</h2><p class="note">${q[0]}</p><p><b>${q[1]}</b></p><div class="row">${oo.map((t,i)=>`<button class="b" onclick="qa(${i})">${t}</button>`).join('')}</div><div id="qf"></div>`;reveal('#qbox .b')}
+function qa(i){const q=Q[QS.i],ok=i===QS.c;QS.by[q[0]]=QS.by[q[0]]||[0,0];QS.by[q[0]][1]++;if(ok){QS.sc++;QS.by[q[0]][0]++}
+$$('#qbox .b').forEach(b=>b.disabled=true);$('#qf').innerHTML=stp([(ok?'<span class="ok">✓ Correct</span>':'<span class="no">✗ Incorrect</span> — answer: '+q[2][q[3]])+'. '+q[4]])+`<button class="b p" onclick="QS.i++;qr()">${QS.i+1<Q.length?'Next':'See result'}</button>`;reveal('#qf .st')}
+/* games */
+let gsc=0,GT=null,GM,MQ,RC,streak=0;
+const lt=(a,b)=>a+'x'+(b?sg(b):''),shuf=(o,c)=>{const a=o.map((t,i)=>[t,i===c]).sort(()=>Math.random()-.5);return[a.map(x=>x[0]),a.findIndex(x=>x[1])]};
+const gadd=p=>{gsc+=p;if(streak>=3)ul('order');if(gsc>(S.gb||0)){S.gb=gsc;save()}$('#gs').textContent=gsc;$('#gb').textContent=S.gb||0;$('#gst').textContent=streak};
+function gm(k){clearInterval(GT);GM=k;({rtl:g1,race:g2,mys:g3,dd:g4})[k]();$$('#gmenu .b').forEach(b=>b.classList.toggle('p',b.dataset.k===k))}
+function mcq(h,p,o,c,e,pts=100){$('#gbox').innerHTML=`<h3>${h}</h3><p>${p}</p><div class="row">${o.map((t,i)=>`<button class="b" onclick="mans(${i})">${t}</button>`).join('')}</div><div id="gfb"></div>`;MQ={c,e,pts};reveal('#gbox .b')}
+function mans(i){$$('#gbox .row .b').forEach(b=>b.disabled=true);$$('#gbox .row .b')[MQ.c].classList.add('on');const ok=i===MQ.c;let p=0;if(ok){streak++;p=MQ.pts+(streak>=3?25:0)}else streak=0;gadd(p);
+$('#gfb').innerHTML=stp([(ok?`<span class="ok">✓ Correct! +${p}</span>`:'<span class="no">✗ Not quite (0 points).</span>')+' '+MQ.e])+'<button class="b p" onclick="gm(GM)">Next round</button>';reveal('#gfb .st')}
+function g1(){const n=ri(2,3),ns=['f','g','h'].sort(()=>Math.random()-.5).slice(0,n),first=Math.random()<.5,nested=ns.reduceRight((a,t)=>t+'('+a+')','x'),ans=first?ns[n-1]:ns[0],[o,c]=shuf(ns,ns.indexOf(ans));
+mcq('Right-to-Left Challenge',`For <b>(${ns.join(' ∘ ')})(x)</b>, which function acts <b>${first?'first':'last'}</b>?`,o,c,`(${ns.join(' ∘ ')})(x) = ${nested}. The rightmost function (${ns[n-1]}) acts first; the leftmost (${ns[0]}) acts last.`)}
+const DD=[['√(x − 5)','f(x)=√x, g(x)=x−5','x ≥ 5',['x > 5','x ≤ 5','all real numbers'],'√ needs g(x) = x−5 ≥ 0, so x ≥ 5 (x = 5 gives √0, which is fine).'],
+['1/(x − 3)','f(x)=1/x, g(x)=x−3','x ≠ 3',['x > 3','x ≥ 3','all real numbers'],'f needs g(x) ≠ 0, so x ≠ 3.'],
+['√(4 − x)','f(x)=√x, g(x)=4−x','x ≤ 4',['x ≥ 4','x < 4','all real numbers'],'Need 4 − x ≥ 0, so x ≤ 4.'],
+['√(x²)','f(x)=√x, g(x)=x²','all real numbers',['x ≥ 0','x > 0','x ≠ 0'],'x² ≥ 0 for every real x, so g(x) is always in the domain of f.'],
+['1/√(x − 1)','f(x)=1/√x, g(x)=x−1','x > 1',['x ≥ 1','x ≠ 1','x < 1'],'f needs g(x) > 0 strictly (√ must be real and nonzero), so x > 1.'],
+['√(1/x)','f(x)=√x, g(x)=1/x','x > 0',['x ≥ 0','x ≠ 0','x < 0'],'g needs x ≠ 0, and 1/x ≥ 0 forces x > 0.']];
+function g4(){const d=DD[ri(0,DD.length-1)],[o,c]=shuf([d[2]].concat(d[3]),0);mcq('Domain Detective',`Composite: <b>${d[0]}</b> (${d[1]}). What is the valid real domain?`,o,c,d[4])}
+function g3(){const a=ri(2,5),b=ri(-5,5),pool=[['x^2','x²'],['x+3','x + 3'],['2x','2x'],['x-1','x − 1'],['x^3','x³'],['3x+1','3x + 1']],k=ri(0,5),fs=lt(a,b),gs=pool[k][0];
+const ds=pool.filter((_,i)=>i!==k).sort(()=>Math.random()-.5).slice(0,3),[o,c]=shuf([pool[k][1]].concat(ds.map(d=>d[1])),0),cc=comp(fs,gs).simp,vals=[1,2,3].map(t=>fmt(F(fs)(F(gs)(t))));
+mcq('Mystery Function (reasoning challenge)',`f(x) = ${fs} and (f ∘ g)(x) = <b>${cc}</b> (values at x = 1, 2, 3: ${vals.join(', ')}). What could g(x) be?`,o,c,`f(g(x)) = ${a}·g(x)${b?sg(b):''}. Solving ${a}·g(x)${b?sg(b):''} = ${cc} gives g(x) = ${pool[k][1]}.`,150)}
+function g2(){RC={n:0,sc:0};rq()}
+function rq(){clearInterval(GT);if(RC.n>=6){$('#gbox').innerHTML=`<h3>Race complete</h3><p>You earned <b>${RC.sc}</b> points this round.</p><button class="b p" onclick="gm('race')">Race again</button>`;return}
+const a=ri(2,5),b=ri(-4,4),c=ri(2,4),d=ri(-4,4),n=ri(-3,5),fg=Math.random()<.5,inn=fg?c*n+d:a*n+b,ans=fg?a*inn+b:c*inn+d;RC.ans=ans;RC.t=10;RC.done=false;
+RC.sol=fg?`g(${n}) = ${inn}, then f(${inn}) = ${ans}`:`f(${n}) = ${inn}, then g(${inn}) = ${ans}`;
+$('#gbox').innerHTML=`<h3>Composition Race · ${RC.n+1}/6</h3><p>f(x) = ${lt(a,b)}, g(x) = ${lt(c,d)}. Find <b>(${fg?'f ∘ g':'g ∘ f'})(${n})</b> — 10 seconds. +100 correct, +50 if answered with 5 s or more left.</p><div class="bar"><i id="tb" style="width:100%;transition:none"></i></div><div class="row"><label>Answer<input id="ra" inputmode="decimal"></label><button class="b p" onclick="rs()">Submit</button></div><div id="gfb"></div>`;
+$('#ra').focus();$('#ra').onkeydown=e=>{if(e.key==='Enter')rs()};
+GT=setInterval(()=>{RC.t-=.1;$('#tb').style.width=Math.max(0,RC.t*10)+'%';if(RC.t<=0)rend(0,'⏱ Time is up!')},100)}
+function rend(p,m){if(RC.done)return;RC.done=true;clearInterval(GT);if(p)streak++;else streak=0;RC.sc+=p;gadd(p);$('#ra').disabled=true;
+$('#gfb').innerHTML=stp([`${m} ${p?'+'+p:'0 points'}. Answer: ${RC.ans} (${RC.sol})`])+`<button class="b p" onclick="RC.n++;rq()">${RC.n<5?'Next problem':'Finish'}</button>`;reveal('#gfb .st')}
+function rs(){if(RC.done)return;const v=$('#ra').value.trim();if(v===''||isNaN(+v)){$('#gfb').innerHTML='<div class="err">⚠ Enter a number.</div>';return}
+const ok=+v===RC.ans;rend(ok?100+(RC.t>=5?50:0):0,ok?'<span class="ok">✓ Correct!</span>':'<span class="no">✗ Incorrect.</span>')}
+/* achievements, builder, final */
+const mix=(o,c)=>o.length>2?shuf(o,c):[o,c];
+const ACH=[['first','🏅','First Composition','Calculate a composition in the Compose lab'],['map','🔗','Mapping Master','Follow a path in the mapping diagram'],['exp','🧪','Experimenter','Build a 2+ block chain in the Builder'],['order','🔄','Order Expert','Get a 3-answer streak in a game'],['domain','📐','Domain Detective','Run the domain analyzer'],['id','♾','Identity Explorer','Run the identity check'],['inv','↩','Inverse Master','Verify all inverse identities'],['perfect','🎯','Perfect Quiz','Score 100% on the quiz'],['final','🎓','Assessment Ace','Score 90%+ on the Final'],['master','🏆','Composition Master','Unlock every other badge']];
+function bdg(){$('#bdg').innerHTML=ACH.map(a=>`<div style="opacity:${S.a.includes(a[0])?1:.38}"><span style="font-size:22px">${a[1]}</span> <b>${a[2]}</b><br><span class="note">${a[3]}</span></div>`).join('')}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';try{M.animate(t,{opacity:[0,1],transform:['translateX(-50%) translateY(20px)','translateX(-50%) translateY(0px)']},{duration:.4})}catch(e){}clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',3000)}
+function ul(id){if(S.a.includes(id))return;S.a.push(id);save();bdg();toast(ACH.find(a=>a[0]===id)[1]+' '+ACH.find(a=>a[0]===id)[2]+' unlocked!');if(ACH.filter(a=>a[0]!=='master').every(a=>S.a.includes(a[0])))ul('master')}
+let BC=['f','g'],BT=null,BW=false;const bsrc=n=>$('#b'+n).value;
+function badd(n){BC.push(n);bev(1)}function brm(i){BC.splice(i,1);bev(1)}
+document.addEventListener('dragstart',e=>{const t=e.target.closest&&e.target.closest('[data-drag]');if(t)e.dataTransfer.setData('text',t.dataset.drag)});
+function bdrop(e){e.preventDefault();const d=e.dataTransfer.getData('text'),i=$$('#bchain [data-i]').filter(c=>{const r=c.getBoundingClientRect();return e.clientX>r.left+r.width/2}).length;
+if(d.startsWith('p:'))BC.splice(i,0,d.slice(2));else if(d.startsWith('c:')){const k=+d.slice(2),n=BC.splice(k,1)[0];BC.splice(i>k?i-1:i,0,n)}bev(1)}
+function bev(u){const o=$('#bout');$('#bchain').innerHTML=BC.length?BC.map((n,i)=>`${i?'<i>∘</i>':''}<span class="mc" draggable="true" data-drag="c:${i}" data-i="${i}">${n} <button class="b" style="padding:0 8px;border-radius:8px" aria-label="Remove ${n}" onclick="brm(${i})">✕</button></span>`).join(''):'<span class="note">Drag or click f, g, h here…</span>';
+run(o,()=>{if(!BC.length){o.innerHTML='';return}const x=gx('#bx'),r1=ch=>{let v=x,l=[['c',fmt(x)]];for(const n of [...ch].reverse()){v=F(bsrc(n))(v);l.push(['m',n],['c',fmt(v)])}return[v,l]};
+const [v,l]=r1(BC),t='('+BC.join(' ∘ ')+')';let ex=bsrc(BC[BC.length-1]);for(let k=BC.length-2;k>=0;k--)ex=sub(bsrc(BC[k]),ex).toString();
+const st=[`${t}(${fmt(x)}) = ${BC.reduceRight((a,n)=>n+'('+a+')','x')} — rightmost block runs first`,`Result: <b>${fmt(v)}</b>`,`Composite expression: ${ex} → ${simp(math.parse(ex))}`];
+if(BC.length>1){try{const [r]=r1([...BC].reverse());st.push(`Reversed order (${[...BC].reverse().join(' ∘ ')})(${fmt(x)}) = ${fmt(r)} — ${Math.abs(r-v)<1e-9?'same value here':'different: order matters'}`)}catch(e){st.push('The reversed order is undefined at this x.')}if(u)ul('exp')}
+if(BT!==null&&Math.abs(v-BT)<1e-9&&!BW){BW=true;gadd(150);st.push('<span class="ok">🎯 Target reached! +150 points</span>')}
+o.innerHTML=pipe(l)+stp(st);reveal('#bout .st,#bout .pipe>*')})}
+function bch(){try{const x=gx('#bx'),n=ri(2,3),ch=['f','g','h'].sort(()=>Math.random()-.5).slice(0,n);let v=x;for(const k of [...ch].reverse())v=F(bsrc(k))(v);BT=v;BW=false;BC=[];
+$('#bt').innerHTML=stp([`🎯 Target: arrange blocks so the result is <b>${fmt(v)}</b> for x = ${fmt(x)}. A ${n}-block chain reaches it; blocks may be reused.`]);bev()}catch(e){$('#bt').innerHTML='<div class="err">⚠ '+e.message+'</div>'}}
+const FB=[['A · Function basics','A function assigns to each input in its domain:',['exactly one output','at least one output','two outputs','no output'],0,'By definition, exactly one output per input.'],
+['A · Function basics','A={1,2,3}, B={a,b,c,d}, 1→a, 2→b, 3→c. The range is:',['{a, b, c}','{a, b, c, d}','{1, 2, 3}','{d}'],0,'Range = outputs actually produced. d is never hit, so the function is into.'],
+['B · Composition','f(x)=x², g(x)=x+1. Find (f ∘ g)(2).',['9','5','25','6'],0,'g(2)=3, then f(3)=9. (The order g ∘ f would give 5.)'],
+['B · Composition','f(x)=3x, g(x)=x−2. (g ∘ f)(x) =',['3x − 2','3x − 6','x − 6','3x + 2'],0,'g(f(x)) = g(3x) = 3x − 2.'],
+['C · Properties','(f ∘ g) ∘ h = f ∘ (g ∘ h) is called:',['associativity','commutativity','identity law','inverse law'],0,'Regrouping does not change the result.'],
+['C · Properties','f(x)=x+1, g(x)=2x. Is f ∘ g = g ∘ f?',['No: 2x+1 ≠ 2x+2','Yes','Only when x = 0','Cannot be decided'],0,'f∘g = 2x+1 but g∘f = 2(x+1) = 2x+2, which never agree.'],
+['D · Domain & range','f(x)=√x, g(x)=x+4. Real domain of f ∘ g:',['x ≥ −4','x ≥ 4','x > −4','all reals'],0,'Need x+4 ≥ 0, so x ≥ −4.'],
+['D · Domain & range','f(x)=1/x, g(x)=x−2. f ∘ g is undefined at:',['x = 2','x = 0','x = −2','nowhere'],0,'f(g(x)) = 1/(x−2) needs x ≠ 2.'],
+['E · Inverse','The inverse of f(x)=3x−6 is:',['(x + 6)/3','(x − 6)/3','3x + 6','x/3 − 6'],0,'Solve y = 3x − 6 for x: x = (y+6)/3.'],
+['E · Inverse','f(x)=x+2, g(x)=3x. (f ∘ g)⁻¹(x) =',['(x − 2)/3','x/3 − 2','(x + 2)/3','3x − 2'],0,'f∘g = 3x+2; undoing gives (x−2)/3 = g⁻¹(f⁻¹(x)).'],
+['F · Application','A 10% discount is applied first, then 5% tax. Final price for price p:',['1.05 × (0.9p)','0.9p + 0.05','p − 0.15','0.95 × 1.1p'],0,'Discount: 0.9p; tax applied to that result: 1.05 × 0.9p.'],
+['F · Application','°C → °F is f and °F → K is g. °C → K is modelled by:',['g ∘ f (f applied first)','f ∘ g','f + g','f × g'],0,'The output of f feeds g, which is g(f(x)) = (g ∘ f)(x).']];
+let FS;function fs0(){FS={i:0,sc:0,by:{}};fr()}
+function fr(){const b=$('#fbox');if(FS.i>=FB.length){const p=Math.round(FS.sc/FB.length*100);if(p>=90)ul('final');
+b.innerHTML=`<h2>Final score: ${FS.sc}/${FB.length} (${p}%)</h2>`+stp(Object.entries(FS.by).map(([k,v])=>`${k}: ${v[0]}/${v[1]}`))+`<p>${p>=90?'Excellent mastery.':p>=75?'Strong understanding.':p>=50?'Good start — revise a few concepts.':'Review the learning modules and try again.'}</p><button class="b p" onclick="fs0()">Retake</button>`;return}
+const q=FB[FS.i],[o,c]=mix(q[2],q[3]);FS.c=c;b.innerHTML=`<h2>Final Assessment · ${FS.i+1}/${FB.length}</h2><p class="note">Section ${q[0]}</p><p><b>${q[1]}</b></p><div class="row">${o.map((t,i)=>`<button class="b" onclick="fa(${i})">${t}</button>`).join('')}</div><div id="ff"></div>`;reveal('#fbox .b')}
+function fa(i){const q=FB[FS.i],ok=i===FS.c;FS.by[q[0]]=FS.by[q[0]]||[0,0];FS.by[q[0]][1]++;if(ok){FS.sc++;FS.by[q[0]][0]++}$$('#fbox .row .b').forEach(b=>b.disabled=true);$$('#fbox .row .b')[FS.c].classList.add('on');
+$('#ff').innerHTML=stp([(ok?'<span class="ok">✓ Correct</span>':'<span class="no">✗ Incorrect</span>')+'. '+q[4]])+`<button class="b p" onclick="FS.i++;fr()">${FS.i+1<FB.length?'Next':'See result'}</button>`;reveal('#ff .st')}
+mach();nm();mp();np();qs();fs0();gadd(0);bdg();bev();show('home');
+</script></body></html>
